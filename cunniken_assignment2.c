@@ -1,6 +1,6 @@
 // Program Name: Movies
 // Author: Kenneth Cunningham
-// This program will 
+// This program will implement movie management functionality.
 // Used to learn C concepts such as pointers, structures, and linked lists
 
 #include <stdio.h>
