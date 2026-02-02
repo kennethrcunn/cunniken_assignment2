@@ -7,7 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define max_langs 5 
+#define max_langs 5
+#define min_yr 1900
+#define max_yr 2021
 
 /**/
 struct movie {
@@ -51,6 +53,8 @@ int main(int argc, char *argv[]) {
 
   while (fgets(buffer, sizeof(buffer), file)) {           //
     struct movie *m = parseMovie(buffer);
+    if (!m) continue;
+    
     if (!head)
       head = tail = m;
     else {
@@ -81,10 +85,10 @@ int main(int argc, char *argv[]) {
     else if (choice == 3) {                                                       //
       char lang[20];
       printf("Enter the language for which you want to see movies: ");
-      scanf("%s", lang);
+      scanf("%19s", lang);
       moviesByLanguage(head, lang);
     }
-    else if (choice !== 4) {                                                      //
+    else if (choice != 4) {                                                      //
       printf("You entered an invalid choice. Try again. \n");
     }
     
@@ -106,17 +110,19 @@ void showMenu(void) {
 
 struct movie *parseMovie(char *line) {
   struct movie *m = malloc(sizeof(struct movie));
+  if (!m) return NULL;
   m -> next = NULL;
 
   char *saveptr;
-  char *token = strtok_r(line, ", ", &saveptr);
+  char *token = strtok_r(line, ",", &saveptr);
+  if (!token) return NULL;
 
   m -> title = strdup(token);
-  m -> year = atoi(strtok_r(NULL, ", ", &saveptr));
+  m -> year = atoi(strtok_r(NULL, ",", &saveptr));
 
-  char *langs = strtok_r(NULL, ", ", &saveptr);                                    // Parses languages
+  char *langs = strtok_r(NULL, ",", &saveptr);                                    // Parses languages
   langs++;
-  langs[strlen(langs) - 1] = 0
+  langs[strlen(langs) - 1] = 0;
 
   m -> langCount = 0;
   char *langToken;
@@ -125,13 +131,13 @@ struct movie *parseMovie(char *line) {
 
   while (langToken && m -> langCount < max_langs) {
     m -> languages[m -> langCount++] = strdup(langToken);
-    langToken = strtok_r(NULL, ",", &langSave);
+    langToken = strtok_r(NULL, ";", &langSave);
   }
-  m -> rating = strtof(strtok_r(NULL, ", ', &saveptr), NULL);
+  m -> rating = strtof(strtok_r(NULL, ",", &saveptr), NULL);
     return m;
 }
 
-void moviesBYYear(struct movie *head, int year) {
+void moviesByYear(struct movie *head, int year) {
   int found = 0;
   while (head) {
     if (head -> year == year) {
@@ -140,22 +146,24 @@ void moviesBYYear(struct movie *head, int year) {
     }
     head = head -> next;
   }
-  if (found)
+  if (!found)
     printf("No data about movies released in the year %d\n", year);
 }
 
-void highestRatedBYYear(struct movie *head) {
-  struct movie *best[300] = {NULL};
+void highestRatedByYear(struct movie *head) {
+  struct movie *best[max_yr - min_yr + 1] = {NULL};
 
   while (head) {
-    int y = head -> year;
-    if (!best[y] || head -> rating > best[y} -> rating)
-      best[y] = head;
+    int idx = head -> year - min_yr;
+    if (idx >= 0 && idx <= max_yr - min_yr) { 
+      if (!best[idx] || head -> rating > best[idx] -> rating) 
+        best[idx] = head;
+    }
     head = head -> next;
   }
-  for (int i = 1900; i <= 2021; i++) {
+  for (int i = 0; i <= max_yr - min_yr; i++) {
     if (best[i])
-      printf("%d %.1f %s\n", i, best[i] -> rating, best[i] -> title);
+      printf("%d %.1f %s\n", i + min_yr, best[i] -> rating, best[i] -> title);
   }
 }
 
@@ -184,7 +192,7 @@ void freeMovies(struct movie *head) {
     head = head -> next;
     free(tmp);
   }
-}
+
 
 
 
